@@ -3,16 +3,34 @@ import styled from 'styled-components';
 import Menu from '../src/components/Menu';
 import { StyledTimeline } from '../src/components/Timeline';
 import React from 'react';
+import { videoService } from '../src/services/videoService';
 
 function HomePage() {
     const [valorDoFiltro, setValorDoFiltro] = React.useState("")
+    const [playlists, setPlaylists] = React.useState({});
+    const service = videoService();
+
+    React.useEffect(() => {
+        service.getAllVideos()
+            .then((resp) => {
+                //const novasPlaylists = { ...config.playlists, ...playlists }; TODO: compor somente uma vez
+                const novasPlaylists = { ...playlists };
+                resp.data.forEach((video) => {
+                    if (!novasPlaylists[video.playlist]) {
+                        novasPlaylists[video.playlist] = [];
+                    }
+                    novasPlaylists[video.playlist].push(video);
+                })
+                setPlaylists(novasPlaylists);
+            })
+    }, [])
 
     return (
         <>
             <div>
                 <Menu valorDoFiltro={valorDoFiltro} setValorDoFiltro={setValorDoFiltro} />
                 <Header />
-                <Timeline searchValue={valorDoFiltro} playlists={config.playlists} />
+                <Timeline searchValue={valorDoFiltro} playlists={playlists} />
             </div>
         </>
     )
@@ -22,7 +40,7 @@ export default HomePage
 
 const StyledHeader = styled.div`
 
-    background-color: ${({theme})=> theme.backgroundLevel1};
+    background-color: ${({ theme }) => theme.backgroundLevel1};
     img{
         width:80px;
         height:80px;
